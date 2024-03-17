@@ -14,6 +14,12 @@ public:
   Soft();
   ~Soft();
 
+  u32 pack_rgb(const V3 &c);
+  u32 pack_rgba(const V4 &c);
+
+  V3 unpack_rgb(const u32 &c);
+  V4 unpack_rgba(const u32 &c);
+
   void draw_clear(Bitmap &target, const V4 &c);
   void draw_clear(Bitmap &target, u32 c);
 
@@ -24,10 +30,10 @@ public:
   void draw_line(Bitmap &target, const V2 &p0, const V2 &p1, u32 c);
 
   void draw_triangle(Bitmap &target, const V2 &p0, const V2 &p1, const V2 &p2,
-                     const V4 &c);
+                     const V4 &c0, const V4 &c1, const V4 &c2);
   void draw_triangle(Bitmap &target, const V2 &p0, const V2 &p1, const V2 &p2,
-                     u32 c);
-  
+                     u32 c0, u32 c1, u32 c2);
+
 private:
 };
 

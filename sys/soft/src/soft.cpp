@@ -2,43 +2,57 @@
 // Created by chk on 3/18/2024.
 //
 
+#include "glm/common.hpp"
+#include "glm/geometric.hpp"
 #include <soft/soft.hpp>
 
 Soft::Soft() = default;
 
 Soft::~Soft() = default;
 
+u32 Soft::pack_rgb(const V3 &c) {
+  return ((static_cast<u32>(c.x * 255.0f) << 16) |
+          (static_cast<u32>(c.y * 255.0f) << 8) |
+          (static_cast<u32>(c.z * 255.0f) << 0));
+}
+
+u32 Soft::pack_rgba(const V4 &c) {
+  return ((static_cast<u32>(c.x * 255.0f) << 16) |
+          (static_cast<u32>(c.y * 255.0f) << 8) |
+          (static_cast<u32>(c.z * 255.0f) << 0) |
+          (static_cast<u32>(c.w * 255.0f) << 24));
+}
+
+V3 Soft::unpack_rgb(const u32 &c) {
+  return {(static_cast<r32>((c >> 16) & 0xFF) / 255.0f),
+          (static_cast<r32>((c >> 8) & 0xFF) / 255.0f),
+          (static_cast<r32>((c >> 0) & 0xFF) / 255.0f)};
+}
+
+V4 Soft::unpack_rgba(const u32 &c) {
+  return {(static_cast<r32>((c >> 16) & 0xFF) / 255.0f),
+          (static_cast<r32>((c >> 8) & 0xFF) / 255.0f),
+          (static_cast<r32>((c >> 0) & 0xFF) / 255.0f),
+          (static_cast<r32>((c >> 24) & 0xFF) / 255.0f)};
+}
+
 void Soft::draw_clear(Bitmap &target, const V4 &c) {
-  u32 packed = ((static_cast<u32>(c.x * 255.0f) << 16) |
-                (static_cast<u32>(c.y * 255.0f) << 8) |
-                (static_cast<u32>(c.z * 255.0f) << 0) |
-                (static_cast<u32>(c.w * 255.0f) << 24));
-  return draw_clear(target, packed);
+  return draw_clear(target, pack_rgba(c));
 }
 
 void Soft::draw_pixel(Bitmap &target, const V2 &p, const V4 &c) {
-  u32 packed = ((static_cast<u32>(c.x * 255.0f) << 16) |
-                (static_cast<u32>(c.y * 255.0f) << 8) |
-                (static_cast<u32>(c.z * 255.0f) << 0) |
-                (static_cast<u32>(c.w * 255.0f) << 24));
-  return draw_pixel(target, p, packed);
+  return draw_pixel(target, p, pack_rgba(c));
 }
 
 void Soft::draw_line(Bitmap &target, const V2 &p0, const V2 &p1, const V4 &c) {
-  u32 packed = ((static_cast<u32>(c.x * 255.0f) << 16) |
-                (static_cast<u32>(c.y * 255.0f) << 8) |
-                (static_cast<u32>(c.z * 255.0f) << 0) |
-                (static_cast<u32>(c.w * 255.0f) << 24));
-  return draw_line(target, p0, p1, packed);
+
+  return draw_line(target, p0, p1, pack_rgba(c));
 }
 
 void Soft::draw_triangle(Bitmap &target, const V2 &p0, const V2 &p1,
-                         const V2 &p2, const V4 &c) {
-  u32 packed = ((static_cast<u32>(c.x * 255.0f) << 16) |
-                (static_cast<u32>(c.y * 255.0f) << 8) |
-                (static_cast<u32>(c.z * 255.0f) << 0) |
-                (static_cast<u32>(c.w * 255.0f) << 24));
-  return draw_triangle(target, p0, p1, p2, packed);
+                         const V2 &p2, u32 c0, u32 c1, u32 c2) {
+  return draw_triangle(target, p0, p1, p2, unpack_rgba(c0), unpack_rgba(c1),
+                       unpack_rgba(c2));
 }
 
 void Soft::draw_clear(Bitmap &target, u32 c) {
@@ -86,7 +100,7 @@ void Soft::draw_line(Bitmap &target, const V2 &p0, const V2 &p1, u32 c) {
       err -= dy;
       x0 += sx;
     }
-    
+
     if (e2 < dy) {
       err += dx;
       y0 += sy;
@@ -94,5 +108,44 @@ void Soft::draw_line(Bitmap &target, const V2 &p0, const V2 &p1, u32 c) {
   }
 }
 
+r32 edge_fn(const V2 &a, const V2 &b, const V2 &p) {
+  return (p.x - a.x) * (b.y - a.y) - (p.y - a.y) * (b.x - a.x);
+}
+
 void Soft::draw_triangle(Bitmap &target, const V2 &p0, const V2 &p1,
-                         const V2 &p2, u32 c) {}
+                         const V2 &p2, const V4 &c0, const V4 &c1,
+                         const V4 &c2) {
+  // Get winding order and skip backwards facing triangles
+  V3 cp = glm::cross(V3(p1 - p0, 0), V3(p2 - p0, 0));
+  if (cp.z >= 0)
+    return;
+
+  // Get triangle bounding box
+  V2i minp = glm::max(glm::min(p0, glm::min(p1, p2)), {0, 0});
+  V2i maxp =
+      glm::min(glm::max(p0, glm::max(p1, p2)), V2(target.size()) - V2{1, 1});
+
+  for (s32 y = minp.y; y < maxp.y; ++y) {
+    for (s32 x = minp.x; x < maxp.x; ++x) {
+      V2 p = {x, y};
+
+      r32 area = edge_fn(p0, p1, p2);
+      r32 w0 = edge_fn(p1, p2, p);
+      r32 w1 = edge_fn(p2, p0, p);
+      r32 w2 = edge_fn(p0, p1, p);
+
+      if (w0 >= 0 && w1 >= 0 && w2 >= 0) {
+        w0 /= area;
+        w1 /= area;
+        w2 /= area;
+
+        r32 r = w0 * c0[0] + w1 * c1[0] + w2 * c2[0];
+        r32 g = w0 * c0[1] + w1 * c1[1] + w2 * c2[1];
+        r32 b = w0 * c0[2] + w1 * c1[2] + w2 * c2[2];
+        r32 a = w0 * c0[3] + w1 * c1[3] + w2 * c2[3];
+
+        draw_pixel(target, p, {r, g, b, a});
+      }
+    }
+  }
+}

@@ -197,12 +197,11 @@ s32 Win::tick(b32 process_events) {
 
   // Calculate the viewport dimensions based on scaling config
   s32 vx = 0, vy = 0, vw = 0, vh = 0;
-  r32 scale = 1.0f;
   if (_locked) {
     r32 sw = (r32)win_px_w, sh = (r32)win_px_h;
     r32 bw = (r32)_fb.size().x, bh = (r32)_fb.size().y;
 
-    scale = std::min(sw / bw, sh / bh);
+    r32 scale = std::min(sw / bw, sh / bh);
     if (scale >= 1.0 && _integer) {
       scale = floorf(scale);
     }
@@ -215,7 +214,7 @@ s32 Win::tick(b32 process_events) {
   // Calculate scaled mouse coordinates
   V2 mp = {_raw_mouse_pos.x * _scale.x, _raw_mouse_pos.y * _scale.y};
   V2 tl = {vx, vy}, br = V2{vw, vh} + tl;
-  _mouse_pos = glm::round(map_2d(mp, tl, br, {0, 0}, _fb.size()));
+  _mouse_pos = glm::floor(map_2d(mp, tl, br, {0, 0}, _fb.size()));
 
   _fb.render();
   glfwSwapBuffers(handle);

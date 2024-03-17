@@ -33,6 +33,12 @@ public:
   [[nodiscard]] V2 raw_mouse_pos() const { return _mouse_pos; }
   [[nodiscard]] V2 mouse_pos() const { return _mouse_pos; }
 
+  [[nodiscard]] WinFramebuffer &fb() { return _fb; }
+  [[nodiscard]] const WinFramebuffer &fb() const { return _fb; }
+
+  [[nodiscard]] V3 &bg() { return _bg; }
+  [[nodiscard]] const V3 &bg() const { return _bg; }
+
 private:
   s32 _exit_code{0};
   b32 _running{false};

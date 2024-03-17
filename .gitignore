@@ -1,0 +1,6 @@
+# VSCode
+build/
+.cache/
+
+# CLion
+cmake-build-*/

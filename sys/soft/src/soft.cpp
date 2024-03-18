@@ -112,8 +112,10 @@ void Soft::draw_triangle(Bitmap &target, const V2 &p0, const V2 &p1,
                          const V2 &uv1, const V2 &uv2) {
   // Get winding order and skip backwards facing triangles
   V3 cp = glm::cross(V3(p1 - p0, 0), V3(p2 - p0, 0));
-  if (cp.z < 0)
-    return;
+  if (cp.z >= 0) {
+      // V2 tmp = ;
+      // printf("Backwards triangle\n");
+  }
 
   // Get triangle bounding box
   V2i minp = glm::max(glm::min(p0, glm::min(p1, p2)), {0, 0});
@@ -129,7 +131,7 @@ void Soft::draw_triangle(Bitmap &target, const V2 &p0, const V2 &p1,
       r32 w1 = edge_fn(p2, p0, p);
       r32 w2 = edge_fn(p0, p1, p);
 
-      if (w0 < 0 && w1 < 0 && w2 < 0) {
+      if (w0 >= 0 && w1 >= 0 && w2 >= 0) {
         w0 /= area, w1 /= area, w2 /= area;
 
         V2 uv = {w0 * uv0.x + w1 * uv1.x + w2 * uv2.x,
@@ -138,7 +140,7 @@ void Soft::draw_triangle(Bitmap &target, const V2 &p0, const V2 &p1,
         // Sample tex
         uv = glm::fract(uv);
         s32 tex_x = (s32)(uv.x * (r32)tex.size().x);
-        s32 tex_y = (s32)(uv.y * (r32)tex.size().y);
+        s32 tex_y = (s32)((1.0f - uv.y) * (r32)tex.size().y);
         u8 *ptr =
             tex.memory() + tex_y * tex.pitch() + sizeof(u8) * tex.bpp() * tex_x;
         u32 *pix = reinterpret_cast<u32 *>(ptr);

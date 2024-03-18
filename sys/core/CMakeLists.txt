@@ -15,7 +15,7 @@ if (NOT TARGET glm)
     find_package(glm CONFIG REQUIRED)
 endif ()
 
-if (NOT TARGET stb)
+if (NOT TARGET image)
     find_package(stb CONFIG REQUIRED)
 endif ()
 

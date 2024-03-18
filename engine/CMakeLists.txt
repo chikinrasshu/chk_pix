@@ -41,3 +41,8 @@ target_link_libraries(chk_engine PUBLIC chk_soft)
 target_include_directories(chk_engine PUBLIC "include")
 target_compile_features(chk_engine PUBLIC cxx_std_20)
 
+# Copy data
+add_custom_command(TARGET chk_engine POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different
+        "${CMAKE_CURRENT_SOURCE_DIR}/data" "$<TARGET_FILE_DIR:chk_engine>/data"
+)

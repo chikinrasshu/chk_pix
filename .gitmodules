@@ -7,3 +7,6 @@
 [submodule "ext/glad"]
 	path = ext/glad
 	url = https://github.com/Dav1dde/glad
+[submodule "ext/stb"]
+	path = ext/stb
+	url = https://github.com/gracicot/stb-cmake

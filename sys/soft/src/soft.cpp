@@ -4,6 +4,7 @@
 
 #include "glm/common.hpp"
 #include "glm/geometric.hpp"
+#include <cmath>
 #include <soft/soft.hpp>
 
 Soft::Soft() = default;
@@ -47,12 +48,6 @@ void Soft::draw_pixel(Bitmap &target, const V2 &p, const V4 &c) {
 void Soft::draw_line(Bitmap &target, const V2 &p0, const V2 &p1, const V4 &c) {
 
   return draw_line(target, p0, p1, pack_rgba(c));
-}
-
-void Soft::draw_triangle(Bitmap &target, const V2 &p0, const V2 &p1,
-                         const V2 &p2, u32 c0, u32 c1, u32 c2) {
-  return draw_triangle(target, p0, p1, p2, unpack_rgba(c0), unpack_rgba(c1),
-                       unpack_rgba(c2));
 }
 
 void Soft::draw_clear(Bitmap &target, u32 c) {
@@ -113,11 +108,11 @@ r32 edge_fn(const V2 &a, const V2 &b, const V2 &p) {
 }
 
 void Soft::draw_triangle(Bitmap &target, const V2 &p0, const V2 &p1,
-                         const V2 &p2, const V4 &c0, const V4 &c1,
-                         const V4 &c2) {
+                         const V2 &p2, Bitmap &tex, const V2 &uv0,
+                         const V2 &uv1, const V2 &uv2) {
   // Get winding order and skip backwards facing triangles
   V3 cp = glm::cross(V3(p1 - p0, 0), V3(p2 - p0, 0));
-  if (cp.z >= 0)
+  if (cp.z < 0)
     return;
 
   // Get triangle bounding box
@@ -125,26 +120,37 @@ void Soft::draw_triangle(Bitmap &target, const V2 &p0, const V2 &p1,
   V2i maxp =
       glm::min(glm::max(p0, glm::max(p1, p2)), V2(target.size()) - V2{1, 1});
 
-  for (s32 y = minp.y; y < maxp.y; ++y) {
-    for (s32 x = minp.x; x < maxp.x; ++x) {
-      V2 p = {x, y};
+  for (s32 y = minp.y; y <= maxp.y; ++y) {
+    for (s32 x = minp.x; x <= maxp.x; ++x) {
+      V2 p = V2{x, y} + V2{0.5f, 0.5f};
 
       r32 area = edge_fn(p0, p1, p2);
       r32 w0 = edge_fn(p1, p2, p);
       r32 w1 = edge_fn(p2, p0, p);
       r32 w2 = edge_fn(p0, p1, p);
 
-      if (w0 >= 0 && w1 >= 0 && w2 >= 0) {
-        w0 /= area;
-        w1 /= area;
-        w2 /= area;
+      if (w0 < 0 && w1 < 0 && w2 < 0) {
+        w0 /= area, w1 /= area, w2 /= area;
 
-        r32 r = w0 * c0[0] + w1 * c1[0] + w2 * c2[0];
-        r32 g = w0 * c0[1] + w1 * c1[1] + w2 * c2[1];
-        r32 b = w0 * c0[2] + w1 * c1[2] + w2 * c2[2];
-        r32 a = w0 * c0[3] + w1 * c1[3] + w2 * c2[3];
+        V2 uv = {w0 * uv0.x + w1 * uv1.x + w2 * uv2.x,
+                 w0 * uv0.y + w1 * uv1.y + w2 * uv2.y};
 
-        draw_pixel(target, p, {r, g, b, a});
+        // Sample tex
+        uv = glm::fract(uv);
+        s32 tex_x = (s32)(uv.x * (r32)tex.size().x);
+        s32 tex_y = (s32)(uv.y * (r32)tex.size().y);
+        u8 *ptr =
+            tex.memory() + tex_y * tex.pitch() + sizeof(u8) * tex.bpp() * tex_x;
+        u32 *pix = reinterpret_cast<u32 *>(ptr);
+
+        /*
+        V4 color = {w0 * c0.x + w1 * c1.x + w2 * c2.x,
+                    w0 * c0.y + w1 * c1.y + w2 * c2.y,
+                    w0 * c0.z + w1 * c1.z + w2 * c2.z,
+                    w0 * c0.w + w1 * c1.w + w2 * c2.w};
+        */
+
+        draw_pixel(target, p, *pix);
       }
     }
   }

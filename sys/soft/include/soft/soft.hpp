@@ -30,9 +30,7 @@ public:
   void draw_line(Bitmap &target, const V2 &p0, const V2 &p1, u32 c);
 
   void draw_triangle(Bitmap &target, const V2 &p0, const V2 &p1, const V2 &p2,
-                     const V4 &c0, const V4 &c1, const V4 &c2);
-  void draw_triangle(Bitmap &target, const V2 &p0, const V2 &p1, const V2 &p2,
-                     u32 c0, u32 c1, u32 c2);
+                     Bitmap &tex, const V2 &uv0, const V2 &uv1, const V2 &uv2);
 
 private:
 };

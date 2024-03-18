@@ -17,6 +17,8 @@ public:
   b32 debug();
   b32 resize(V2i new_size);
 
+  static Bitmap from_file(const String &path, s32 bpp = 4);
+
   // Getters
   [[nodiscard]] V2i size() const { return _size; }
   [[nodiscard]] s32 bpp() const { return _bpp; }
@@ -25,6 +27,7 @@ public:
   [[nodiscard]] size_t memory_size() const { return _memory_size; }
 
 private:
+  b32 _from_file{false};
   V2i _size{0, 0};
   s32 _bpp{4};
   s32 _pitch{0};

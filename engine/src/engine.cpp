@@ -14,43 +14,50 @@ int main() {
 
   Soft soft{};
 
-  return win.run([&win, &soft]() {
+  Bitmap sample = Bitmap::from_file("data/test.png");
+  sample.debug();
+
+  return win.run([&win, &soft, &sample]() {
     soft.draw_clear(win.fb(), {0.1f, 0.2f, 0.3f, 1.0f});
 
     V2 mp = win.mouse_pos();
     V2 ws = win.fb().size() - V2i{1, 1};
 
-    // soft.draw_line(win.fb(), {0, 0}, mp, {1, 0, 0, 1});
-    // soft.draw_line(win.fb(), {ws.x, 0}, mp, {0, 1, 0, 1});
-    // soft.draw_line(win.fb(), {0, ws.y}, mp, {0, 0, 1, 1});
-    // soft.draw_line(win.fb(), {ws.x, ws.y}, mp, {0, 1, 1, 1});
-
     V2 cp = ws / 2.0f;
-    V2 dp = mp - cp;
+    V2 dp = cp - mp;
 
-    r32 a = -(2.0f * glm::pi<r32>()) * (1.0f / 3.0f);
-    r32 b = a + (glm::pi<r32>() / 2.0f);
-    r32 c = a + a;
-    r32 d = b + a;
+    r32 da = glm::pi<r32>() / 2.0f;
+    r32 aa = 0.0f;
+    r32 ab = da;
+    r32 ac = 2 * da;
+    r32 ad = 3 * da;
 
-    V2 t0 = cp + dp;
-    V2 t1 = cp + V2{cos(a), sin(a)} * dp.x + V2{cos(b), sin(b)} * dp.y;
-    V2 t2 = cp + V2{cos(c), sin(c)} * dp.x + V2{cos(d), sin(d)} * dp.y;
+    V2 t0 = cp + dp.x * V2{cos(aa), sin(aa)} +
+            dp.y * V2{cos(aa + da), sin(aa + da)};
 
-    // V4 col = {0.4f, 0.6f, 0.8f, 1.0f};
-    // soft.draw_line(win.fb(), t0, t1, {1,0,0, 1});
-    // soft.draw_line(win.fb(), t1, t2, {0,1,0, 1});
-    // soft.draw_line(win.fb(), t2, t0, {0,0,1, 1});
+    V2 t1 = cp + dp.x * V2{cos(ab), sin(ab)} +
+            dp.y * V2{cos(ab + da), sin(ab + da)};
 
-    V4 cr = {1, 0, 0, 1};
-    V4 cg = {0, 1, 0, 1};
-    V4 cb = {0, 0, 1, 1};
+    V2 t2 = cp + dp.x * V2{cos(ac), sin(ac)} +
+            dp.y * V2{cos(ac + da), sin(ac + da)};
 
-    soft.draw_triangle(win.fb(), t0, t1, t2, cr, cg, cb);
+    V2 t3 = cp + dp.x * V2{cos(ad), sin(ad)} +
+            dp.y * V2{cos(ad + da), sin(ad + da)};
+
+    V2 uv0 = {0, 0};
+    V2 uv1 = {0, 1};
+    V2 uv2 = {1, 0};
+    V2 uv3 = {1, 1};
+
+    // soft.draw_triangle(win.fb(), t0, t1, t2, sample, uv0, uv1, uv2);
+
+    soft.draw_triangle(win.fb(), t0, t1, t2, sample, uv0, uv1, uv2);
+    soft.draw_triangle(win.fb(), t0, t2, t3, sample, uv0, uv2, uv3);
 
     soft.draw_pixel(win.fb(), t0, {1, 0, 0, 1});
     soft.draw_pixel(win.fb(), t1, {0, 1, 0, 1});
     soft.draw_pixel(win.fb(), t2, {0, 0, 1, 1});
+    soft.draw_pixel(win.fb(), t3, {1, 1, 1, 1});
 
     // printf("Running frame %llu...\n", win.frame_index());
   });

@@ -3,12 +3,20 @@
 //
 
 #include <core/bmp.hpp>
+#include <core/file.hpp>
+#include <stb/stb_image.h>
 
 Bitmap::Bitmap(V2i size, s32 bpp) : _bpp{bpp} { resize(size); }
 
 Bitmap::~Bitmap() {
   if (_memory) {
-    delete[] _memory;
+    if (_from_file) {
+      stbi_image_free(_memory);
+      _from_file = false;
+    } else {
+      delete[] _memory;
+    }
+
     _memory = nullptr;
   }
   _memory_size = 0;
@@ -39,7 +47,12 @@ b32 Bitmap::debug() {
 
 b32 Bitmap::resize(V2i new_size) {
   if (_memory) {
-    delete[] _memory;
+    if (_from_file) {
+      stbi_image_free(_memory);
+      _from_file = false;
+    } else {
+      delete[] _memory;
+    }
     _memory = nullptr;
   }
 
@@ -51,6 +64,30 @@ b32 Bitmap::resize(V2i new_size) {
     return false;
   }
 
-  debug();
+  // debug();
   return true;
+}
+
+Bitmap Bitmap::from_file(const String &path, s32 bpp) {
+  File file{path};
+
+  s32 file_w, file_h, file_comp;
+  stbi_info_from_memory(file.memory(), file.memory_size(), &file_w, &file_h,
+                        &file_comp);
+
+  u8 *memory = stbi_load_from_memory(file.memory(), file.memory_size(), &file_w,
+                                     &file_h, &file_comp, bpp);
+
+  Bitmap result{};
+  if (memory) {
+    result._from_file = true;
+    result._size.x = file_w;
+    result._size.y = file_h;
+    result._bpp = bpp;
+    result._pitch = file_w * sizeof(u8) * result._bpp;
+    result._memory_size = result._pitch * result._size.y;
+    result._memory = memory;
+  }
+
+  return result;
 }

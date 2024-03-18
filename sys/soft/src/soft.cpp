@@ -140,20 +140,12 @@ void Soft::draw_triangle(Bitmap &target, const V2 &p0, const V2 &p1,
                  w0 * uv0.y + w1 * uv1.y + w2 * uv2.y};
 
         // Sample tex
-        // uv = glm::fract(uv);
         uv = glm::clamp(uv, 0.0f, 1.0f);
         s32 tex_x = (s32)(uv.x * (r32)tex.size().x);
         s32 tex_y = (s32)((1.0f - uv.y) * (r32)tex.size().y);
         u8 *ptr =
             tex.memory() + tex_y * tex.pitch() + sizeof(u8) * tex.bpp() * tex_x;
         u32 *pix = reinterpret_cast<u32 *>(ptr);
-
-        /*
-        V4 color = {w0 * c0.x + w1 * c1.x + w2 * c2.x,
-                    w0 * c0.y + w1 * c1.y + w2 * c2.y,
-                    w0 * c0.z + w1 * c1.z + w2 * c2.z,
-                    w0 * c0.w + w1 * c1.w + w2 * c2.w};
-        */
 
         draw_pixel(target, p, *pix);
       }

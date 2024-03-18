@@ -112,33 +112,38 @@ void Soft::draw_triangle(Bitmap &target, const V2 &p0, const V2 &p1,
                          const V2 &uv1, const V2 &uv2) {
   // Get winding order and skip backwards facing triangles
   V3 cp = glm::cross(V3(p1 - p0, 0), V3(p2 - p0, 0));
-  if (cp.z < 0)
-    return;
+  if (cp.z >= 0) {
+      return;
+      // V2 tmp = ;
+      // printf("Backwards triangle\n");
+  }
 
   // Get triangle bounding box
-  V2i minp = glm::max(glm::min(p0, glm::min(p1, p2)), {0, 0});
-  V2i maxp =
-      glm::min(glm::max(p0, glm::max(p1, p2)), V2(target.size()) - V2{1, 1});
+  V2 half_p = {0.5f, 0.5f};
+  V2i min_p = glm::max(glm::min(glm::min(p0, p1), p2), {0, 0});
+  V2i max_p =
+      glm::min(glm::max(glm::max(p0, p1), p2), V2(target.size()) - V2{1, 1});
 
-  for (s32 y = minp.y; y <= maxp.y; ++y) {
-    for (s32 x = minp.x; x <= maxp.x; ++x) {
-      V2 p = V2{x, y} + V2{0.5f, 0.5f};
+  for (s32 y = min_p.y; y <= max_p.y; ++y) {
+    for (s32 x = min_p.x; x <= max_p.x; ++x) {
+      V2 p = V2{x, y} + half_p;
 
       r32 area = edge_fn(p0, p1, p2);
       r32 w0 = edge_fn(p1, p2, p);
       r32 w1 = edge_fn(p2, p0, p);
       r32 w2 = edge_fn(p0, p1, p);
 
-      if (w0 < 0 && w1 < 0 && w2 < 0) {
+      if (w0 >= 0 && w1 >= 0 && w2 >= 0) {
         w0 /= area, w1 /= area, w2 /= area;
 
         V2 uv = {w0 * uv0.x + w1 * uv1.x + w2 * uv2.x,
                  w0 * uv0.y + w1 * uv1.y + w2 * uv2.y};
 
         // Sample tex
-        uv = glm::fract(uv);
+        // uv = glm::fract(uv);
+        uv = glm::clamp(uv, 0.0f, 1.0f);
         s32 tex_x = (s32)(uv.x * (r32)tex.size().x);
-        s32 tex_y = (s32)(uv.y * (r32)tex.size().y);
+        s32 tex_y = (s32)((1.0f - uv.y) * (r32)tex.size().y);
         u8 *ptr =
             tex.memory() + tex_y * tex.pitch() + sizeof(u8) * tex.bpp() * tex_x;
         u32 *pix = reinterpret_cast<u32 *>(ptr);

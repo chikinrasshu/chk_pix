@@ -72,10 +72,10 @@ Bitmap Bitmap::from_file(const String &path, s32 bpp) {
   File file{path};
 
   s32 file_w, file_h, file_comp;
-  stbi_info_from_memory(file.memory(), file.memory_size(), &file_w, &file_h,
+  stbi_info_from_memory(file.memory(), (s32)file.memory_size(), &file_w, &file_h,
                         &file_comp);
 
-  u8 *memory = stbi_load_from_memory(file.memory(), file.memory_size(), &file_w,
+  u8 *memory = stbi_load_from_memory(file.memory(), (s32)file.memory_size(), &file_w,
                                      &file_h, &file_comp, bpp);
 
   Bitmap result{};
@@ -84,7 +84,7 @@ Bitmap Bitmap::from_file(const String &path, s32 bpp) {
     result._size.x = file_w;
     result._size.y = file_h;
     result._bpp = bpp;
-    result._pitch = file_w * sizeof(u8) * result._bpp;
+    result._pitch = static_cast<s32>(file_w * sizeof(u8) * result._bpp);
     result._memory_size = result._pitch * result._size.y;
     result._memory = memory;
   }

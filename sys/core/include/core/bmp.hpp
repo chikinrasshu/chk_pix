@@ -26,6 +26,11 @@ public:
   [[nodiscard]] u8 *memory() const { return _memory; }
   [[nodiscard]] size_t memory_size() const { return _memory_size; }
 
+  [[nodiscard]] r32 aspect_ratio() const {
+    return static_cast<r32>(_size.x) / static_cast<r32>(_size.y);
+  }
+  [[nodiscard]] r32 aspect_ratio_inv() const { return 1.0f / aspect_ratio(); }
+
 private:
   b32 _from_file{false};
   V2i _size{0, 0};

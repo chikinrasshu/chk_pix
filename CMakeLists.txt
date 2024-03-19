@@ -20,6 +20,7 @@ glad_add_library(glad REPRODUCIBLE API gl:core=4.1)
 add_subdirectory("sys/core")
 add_subdirectory("sys/win")
 add_subdirectory("sys/soft")
+add_subdirectory("sys/gfx")
 
 # Sample Programs
 add_subdirectory("engine")

@@ -20,8 +20,8 @@ if (NOT TARGET image)
 endif ()
 
 # Sources and Headers
-set(chk_core_src_raw "core.cpp" "bmp.cpp" "file.cpp" "mapping.cpp")
-set(chk_core_hdr_raw "core.hpp" "bmp.hpp" "file.hpp" "fn.hpp" "mapping.hpp" "vec.hpp")
+set(chk_core_src_raw "core.cpp" "bindable.cpp" "bmp.cpp" "file.cpp" "mapping.cpp")
+set(chk_core_hdr_raw "core.hpp" "bindable.hpp" "bmp.hpp" "file.hpp" "fn.hpp" "mapping.hpp" "vec.hpp" "mat.hpp" "map.hpp")
 
 prepend(chk_core_src "${CMAKE_CURRENT_SOURCE_DIR}/src" ${chk_core_src_raw})
 prepend(chk_core_hdr "${CMAKE_CURRENT_SOURCE_DIR}/include/core" ${chk_core_hdr_raw})

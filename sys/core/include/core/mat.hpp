@@ -2,10 +2,10 @@
 // Created by Jorge Botarro on 19-03-24.
 //
 
-#ifndef CHK_PIX_MAT_HPP
-#define CHK_PIX_MAT_HPP
+#ifndef CHK_PIX_CORE_MAT_HPP
+#define CHK_PIX_CORE_MAT_HPP
 
-#include "core.hpp"
+#include <core/core.hpp>
 
 #include <glm/glm.hpp>
 
@@ -25,4 +25,4 @@ using Mat4 = Mat4T<r32>;
 using Mat4i = Mat4T<s32>;
 using Mat4u = Mat4T<u32>;
 
-#endif //CHK_PIX_MAT_HPP
+#endif // CHK_PIX_CORE_MAT_HPP

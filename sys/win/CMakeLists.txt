@@ -24,8 +24,14 @@ if (NOT TARGET chk_core)
 endif ()
 
 # Sources and Headers
-set(chk_win_src_raw "win.cpp" "framebuffer.cpp")
-set(chk_win_hdr_raw "win.hpp" "framebuffer.hpp")
+set(chk_win_src_raw
+        "framebuffer.cpp"
+        "win.cpp"
+)
+set(chk_win_hdr_raw
+        "framebuffer.hpp"
+        "win.hpp"
+)
 
 prepend(chk_win_src "${CMAKE_CURRENT_SOURCE_DIR}/src" ${chk_win_src_raw})
 prepend(chk_win_hdr "${CMAKE_CURRENT_SOURCE_DIR}/include/win" ${chk_win_hdr_raw})

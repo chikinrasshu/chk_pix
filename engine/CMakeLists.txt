@@ -19,8 +19,8 @@ if (NOT TARGET chk_win)
     message(FATAL_ERROR "Please include chk_win")
 endif ()
 
-if (NOT TARGET chk_soft)
-    message(FATAL_ERROR "Please include chk_soft")
+if (NOT TARGET chk_gfx)
+    message(FATAL_ERROR "Please include chk_gfx")
 endif ()
 
 # Sources and Headers
@@ -36,7 +36,7 @@ target_sources(chk_engine PUBLIC ${chk_engine_src} ${chk_engine_hdr})
 
 target_link_libraries(chk_engine PUBLIC chk_core)
 target_link_libraries(chk_engine PUBLIC chk_win)
-target_link_libraries(chk_engine PUBLIC chk_soft)
+target_link_libraries(chk_engine PUBLIC chk_gfx)
 
 target_include_directories(chk_engine PUBLIC "include")
 target_compile_features(chk_engine PUBLIC cxx_std_20)

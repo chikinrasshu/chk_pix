@@ -5,13 +5,17 @@
 #include <core/bindable.hpp>
 
 b32 IBindable::bind() {
-    if (_bound) { return false; }
-    _bound = true;
-    return true;
+  if (_bound) {
+    return false;
+  }
+  _bound = true;
+  return true;
 }
 
 b32 IBindable::unbind() {
-    if (!_bound) { return false; }
-    _bound = false;
-    return true;
+  if (!_bound) {
+    return false;
+  }
+  _bound = false;
+  return true;
 }

@@ -1,6 +1,6 @@
 #include <core/file.hpp>
+#include <core/log.hpp>
 
-#include <cstdio>
 #include <fstream>
 
 File::File(const String &path) {
@@ -16,9 +16,10 @@ File::File(const String &path) {
     _memory_size = file_size;
     _memory = new u8[_memory_size];
 
-    ifs.read(reinterpret_cast<char *>(_memory), _memory_size);
+    ifs.read(reinterpret_cast<char *>(_memory),
+             static_cast<std::streamsize>(_memory_size));
   } else {
-    printf("Failed to open file '%s'\n", path.c_str());
+    Log::warn("Failed to open file '{}'", path.c_str());
   }
 }
 

@@ -10,3 +10,9 @@
 [submodule "ext/stb"]
 	path = ext/stb
 	url = https://github.com/gracicot/stb-cmake
+[submodule "ext/spdlog"]
+	path = ext/spdlog
+	url = https://github.com/gabime/spdlog
+[submodule "ext/fmt"]
+	path = ext/fmt
+	url = https://github.com/fmtlib/fmt

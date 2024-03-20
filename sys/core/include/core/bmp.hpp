@@ -2,11 +2,11 @@
 // Created by chk on 3/17/2024.
 //
 
-#ifndef CHK_PIX_BMP_HPP
-#define CHK_PIX_BMP_HPP
+#ifndef CHK_PIX_CORE_BMP_HPP
+#define CHK_PIX_CORE_BMP_HPP
 
-#include "core.hpp"
-#include "vec.hpp"
+#include <core/core.hpp>
+#include <core/vec.hpp>
 
 class Bitmap {
 public:
@@ -41,4 +41,4 @@ private:
   size_t _memory_size{0};
 };
 
-#endif // CHK_PIX_BMP_HPP
+#endif // CHK_PIX_CORE_BMP_HPP

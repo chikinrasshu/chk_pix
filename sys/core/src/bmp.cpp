@@ -4,6 +4,7 @@
 
 #include <core/bmp.hpp>
 #include <core/file.hpp>
+#include <core/log.hpp>
 #include <stb/stb_image.h>
 
 Bitmap::Bitmap(V2i size, s32 bpp) : _bpp{bpp} { resize(size); }
@@ -24,7 +25,7 @@ Bitmap::~Bitmap() {
 
 b32 Bitmap::debug() {
   if (!_memory) {
-    fprintf(stderr, "Debugging uninitialized bitmap\n");
+    Log::warn("Debugging uninitialized bitmap\n");
     return false;
   }
 
@@ -60,11 +61,7 @@ b32 Bitmap::resize(V2i new_size) {
   _pitch = static_cast<s32>((sizeof(u8) * _bpp) * _size.x);
   _memory_size = _pitch * _size.y;
   _memory = new u8[_memory_size];
-  if (!_memory) {
-    return false;
-  }
 
-  // debug();
   return true;
 }
 
@@ -72,11 +69,11 @@ Bitmap Bitmap::from_file(const String &path, s32 bpp) {
   File file{path};
 
   s32 file_w, file_h, file_comp;
-  stbi_info_from_memory(file.memory(), (s32)file.memory_size(), &file_w, &file_h,
-                        &file_comp);
+  stbi_info_from_memory(file.memory(), (s32)file.memory_size(), &file_w,
+                        &file_h, &file_comp);
 
-  u8 *memory = stbi_load_from_memory(file.memory(), (s32)file.memory_size(), &file_w,
-                                     &file_h, &file_comp, bpp);
+  u8 *memory = stbi_load_from_memory(file.memory(), (s32)file.memory_size(),
+                                     &file_w, &file_h, &file_comp, bpp);
 
   Bitmap result{};
   if (memory) {

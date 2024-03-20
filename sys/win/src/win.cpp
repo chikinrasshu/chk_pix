@@ -2,6 +2,7 @@
 // Created by chk on 3/17/2024.
 //
 
+#include <core/log.hpp>
 #include <core/mapping.hpp>
 #include <win/win.hpp>
 
@@ -17,14 +18,25 @@ void g_gl_debug_output(GLenum source, GLenum type, GLuint id, GLenum severity,
                        GLsizei length, const GLchar *message,
                        const void *user_ptr) {
   (void)source;
-  (void)type;
   (void)id;
-  (void)severity;
   (void)length;
   (void)user_ptr;
+  (void)severity;
 
   // Print, log, whatever based on the enums and message
-  fprintf(stderr, "OpenGL: %s\n", message);
+  switch (type) {
+  default:
+  case GL_DEBUG_SEVERITY_NOTIFICATION:
+    Log::log("OpenGL: {}", message);
+    break;
+  case GL_DEBUG_SEVERITY_LOW:
+  case GL_DEBUG_SEVERITY_MEDIUM:
+    Log::info("OpenGL: {}", message);
+    break;
+  case GL_DEBUG_SEVERITY_HIGH:
+    Log::warn("OpenGL: {}", message);
+    break;
+  }
 }
 #endif
 
@@ -37,6 +49,7 @@ Win::Win(V2i size, StringView caption) {
   glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+  glfwWindowHint(GLFW_OPENGL_COMPAT_PROFILE, GLFW_OPENGL_FORWARD_COMPAT);
 
 #ifndef NDEBUG
   glfwWindowHint(GLFW_CONTEXT_DEBUG, GLFW_TRUE);
@@ -52,39 +65,51 @@ Win::Win(V2i size, StringView caption) {
 
   { // Set callbacks
     glfwSetWindowUserPointer(handle, this);
+
     glfwSetWindowCloseCallback(handle, [](GLFWwindow *handle) {
       auto *win = static_cast<Win *>(glfwGetWindowUserPointer(handle));
       if (win) {
         win->_running = false;
       }
     });
+
     glfwSetWindowRefreshCallback(handle, [](GLFWwindow *handle) {
       auto *win = static_cast<Win *>(glfwGetWindowUserPointer(handle));
       if (win && win->running()) {
         win->tick(false);
       }
     });
+
     glfwSetWindowPosCallback(handle, [](GLFWwindow *handle, s32 x, s32 y) {
       auto *win = static_cast<Win *>(glfwGetWindowUserPointer(handle));
       if (win) {
         win->_pos.x = x, win->_pos.y = y;
+        win->_moved = true;
       }
     });
+
     glfwSetWindowSizeCallback(handle, [](GLFWwindow *handle, s32 w, s32 h) {
       auto *win = static_cast<Win *>(glfwGetWindowUserPointer(handle));
       if (win) {
         win->_size.x = w, win->_size.y = h;
+        win->_resized = true;
       }
     });
+
     glfwSetFramebufferSizeCallback(
         handle, [](GLFWwindow *handle, s32 w, s32 h) {
           auto *win = static_cast<Win *>(glfwGetWindowUserPointer(handle));
           if (win) {
+            win->_fb_size.x = w, win->_fb_size.y = h;
+            win->_fb_resized = true;
+
             if (!win->_locked) {
-              win->_fb.resize({w, h});
+              win->_ires.x = w, win->_ires.y = h;
+              win->_ires_changed = true;
             }
           }
         });
+
     glfwSetWindowContentScaleCallback(
         handle, [](GLFWwindow *handle, r32 sx, r32 sy) {
           auto *win = static_cast<Win *>(glfwGetWindowUserPointer(handle));
@@ -92,11 +117,15 @@ Win::Win(V2i size, StringView caption) {
             win->_scale.x = sx, win->_scale.y = sy;
           }
         });
+
     glfwSetCursorPosCallback(handle, [](GLFWwindow *handle, r64 mx, r64 my) {
       auto *win = static_cast<Win *>(glfwGetWindowUserPointer(handle));
       if (win) {
-        win->_raw_mouse_pos.x = static_cast<r32>(mx),
-        win->_raw_mouse_pos.y = static_cast<r32>(my);
+        r32 nx = static_cast<r32>(mx), ny = static_cast<r32>(my);
+        r32 dx = nx - win->_raw_mouse_pos.x, dy = ny - win->_raw_mouse_pos.y;
+
+        win->_raw_mouse_delta.x = dx, win->_raw_mouse_delta.y = dy;
+        win->_raw_mouse_pos.x = nx, win->_raw_mouse_pos.y = ny;
       }
     });
   }
@@ -111,10 +140,11 @@ Win::Win(V2i size, StringView caption) {
 
     s32 ver_major = GLAD_VERSION_MAJOR(ver);
     s32 ver_minor = GLAD_VERSION_MINOR(ver);
-    printf("Loaded OpenGL %d.%d\n", ver_major, ver_minor);
+    Log::info("Loaded OpenGL {}.{}", ver_major, ver_minor);
 
 #ifndef NDEBUG
     if (GLAD_GL_ARB_debug_output) {
+      Log::info("Enabling OpenGL debug_output");
       glEnable(GL_DEBUG_OUTPUT);
       glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
       glDebugMessageCallback(g_gl_debug_output, nullptr);
@@ -129,18 +159,14 @@ Win::Win(V2i size, StringView caption) {
 
   { // Get default values
     r64 tmp_a_r64, tmp_b_r64;
-    s32 tmp_a_s32, tmp_b_s32;
 
     glfwGetWindowPos(handle, &_pos.x, &_pos.y);
     glfwGetWindowSize(handle, &_size.x, &_size.y);
-    glfwGetFramebufferSize(handle, &tmp_a_s32, &tmp_b_s32);
+    glfwGetFramebufferSize(handle, &_fb_size.x, &_fb_size.y);
     glfwGetWindowContentScale(handle, &_scale.x, &_scale.y);
     glfwGetCursorPos(handle, &tmp_a_r64, &tmp_b_r64);
 
-    if (!_locked) {
-      _fb.resize({tmp_a_s32, tmp_b_s32});
-    }
-    _fb.init();
+    _ires.x = _fb_size.x, _ires.y = _fb_size.y;
     _raw_mouse_pos.x = static_cast<r32>(tmp_a_r64),
     _raw_mouse_pos.y = static_cast<r32>(tmp_b_r64);
 
@@ -182,58 +208,72 @@ s32 Win::tick(b32 process_events) {
     return _exit_code;
   }
 
-  s32 win_px_w, win_px_h;
-  { // Clear the window
-    glfwGetFramebufferSize(handle, &win_px_w, &win_px_h);
+  { // Calculate the viewport dimensions based on scaling config
+    if (resized()) {
+      _vp = {0, 0, _fb_size};
+      if (_locked) {
+        r32 sw = (r32)_fb_size.x, sh = (r32)_fb_size.y;
+        r32 bw = (r32)_ires.x, bh = (r32)_ires.y;
 
-    glViewport(0, 0, win_px_w, win_px_h);
+        r32 scale = std::min(sw / bw, sh / bh);
+        if (scale >= 1.0 && _integer) {
+          scale = floorf(scale);
+        }
+
+        _vp.z = bw * scale, _vp.w = bh * scale;
+        _vp.x = (sw - _vp.z) / 2.0f, _vp.y = (sh - _vp.w) / 2.0f;
+      }
+    }
+  }
+
+  { // Calculate scaled mouse coordinates
+    if (mouse_moved()) {
+      V2 mp = {_raw_mouse_pos.x * _scale.x, _raw_mouse_pos.y * _scale.y};
+      V2 tl = {_vp.x, _vp.y}, br = V2{_vp.x + _vp.z, _vp.y + _vp.w};
+      _mouse_pos = glm::floor(map_2d(mp, tl, br, {0, 0}, _ires));
+    }
+  }
+
+  { // Clear the window
+    glViewport(0, 0, _fb_size.x, _fb_size.y);
     glClearColor(_bg.x, _bg.y, _bg.z, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   }
 
-  if (_on_tick) {
-    _on_tick();
-  }
-
-  // Calculate the viewport dimensions based on scaling config
-  s32 vx = 0, vy = 0, vw = 0, vh = 0;
-  if (_locked) {
-    r32 sw = (r32)win_px_w, sh = (r32)win_px_h;
-    r32 bw = (r32)_fb.size().x, bh = (r32)_fb.size().y;
-
-    r32 scale = std::min(sw / bw, sh / bh);
-    if (scale >= 1.0 && _integer) {
-      scale = floorf(scale);
+  { // Generate frame
+    if (_on_tick) {
+      _on_tick();
     }
-
-    vw = (s32)(bw * scale), vh = (s32)(bh * scale);
-    vx = ((s32)sw - vw) / 2, vy = ((s32)sh - vh) / 2;
   }
-  glViewport(vx, vy, vw, vh);
 
-  // Calculate scaled mouse coordinates
-  V2 mp = {_raw_mouse_pos.x * _scale.x, _raw_mouse_pos.y * _scale.y};
-  V2 tl = {vx, vy}, br = V2{vw, vh} + tl;
-  _mouse_pos = glm::floor(map_2d(mp, tl, br, {0, 0}, _fb.size()));
+  { // Present frame
+    glfwSwapBuffers(handle);
+  }
 
-  _fb.render();
-  glfwSwapBuffers(handle);
-  ++_frame_index;
+  { // Reset boolean state
+    _moved = _resized = _fb_resized = _ires_changed = false;
+    _mouse_moved = false;
+  }
+
+  { // Calculate delta time and finish frame.
+    ++_frame_index;
+  }
+
   return _exit_code;
 }
 
 b32 Win::lock_internal_resolution(V2i res, b32 integer_scaling) {
   _locked = true;
   _integer = integer_scaling;
-  _fb.resize(res);
+  _ires = res;
+  _ires_changed = true;
   return true;
 }
 
 [[maybe_unused]] b32 Win::unlock_internal_resolution() {
   _locked = false;
-  s32 w, h;
-  glfwGetFramebufferSize(static_cast<GLFWwindow *>(_ptr), &w, &h);
-  _fb.resize({w, h});
+  glfwGetFramebufferSize(static_cast<GLFWwindow *>(_ptr), &_ires.x, &_ires.y);
+  _ires_changed = true;
   return true;
 }
 

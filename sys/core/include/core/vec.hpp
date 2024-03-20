@@ -2,10 +2,10 @@
 // Created by chk on 3/17/2024.
 //
 
-#ifndef CHK_PIX_VEC_HPP
-#define CHK_PIX_VEC_HPP
+#ifndef CHK_PIX_CORE_VEC_HPP
+#define CHK_PIX_CORE_VEC_HPP
 
-#include "core.hpp"
+#include <core/core.hpp>
 
 #include <glm/glm.hpp>
 
@@ -25,4 +25,4 @@ using V4 = V4T<r32>;
 using V4i = V4T<s32>;
 using V4u = V4T<u32>;
 
-#endif // CHK_PIX_VEC_HPP
+#endif // CHK_PIX_CORE_VEC_HPP

@@ -20,8 +20,19 @@ if (NOT TARGET glad)
 endif ()
 
 # Sources and Headers
-set(chk_gfx_src_raw "gfx.cpp" "shader.cpp")
-set(chk_gfx_hdr_raw "gfx.hpp" "shader.hpp")
+set(chk_gfx_src_raw
+        "cmd.cpp"
+        "framebuffer.cpp"
+        "gfx.cpp"
+        "shader.cpp"
+)
+set(chk_gfx_hdr_raw
+        "cmd.hpp"
+        "framebuffer.hpp"
+        "gfx.hpp"
+        "renderable.hpp"
+        "shader.hpp"
+)
 
 prepend(chk_gfx_src "${CMAKE_CURRENT_SOURCE_DIR}/src" ${chk_gfx_src_raw})
 prepend(chk_gfx_hdr "${CMAKE_CURRENT_SOURCE_DIR}/include/gfx" ${chk_gfx_hdr_raw})

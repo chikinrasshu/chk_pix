@@ -2,8 +2,8 @@
 // Created by chk on 3/17/2024.
 //
 
-#ifndef CHK_PIX_FRAMEBUFFER_HPP
-#define CHK_PIX_FRAMEBUFFER_HPP
+#ifndef CHK_PIX_WIN_FRAMEBUFFER_HPP
+#define CHK_PIX_WIN_FRAMEBUFFER_HPP
 
 #include <core/bmp.hpp>
 #include <core/vec.hpp>
@@ -35,4 +35,4 @@ private:
   u32 _indices[6] = {0, 1, 2, 2, 3, 0};
 };
 
-#endif // CHK_PIX_FRAMEBUFFER_HPP
+#endif // CHK_PIX_WIN_FRAMEBUFFER_HPP

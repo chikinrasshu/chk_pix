@@ -2,6 +2,7 @@
 // Created by chk on 3/17/2024.
 //
 
+#include <core/log.hpp>
 #include <win/framebuffer.hpp>
 
 #include <glad/gl.h>
@@ -51,7 +52,7 @@ u32 compile_shader(const String &src, u32 kind) {
     auto info_buffer = new GLchar[info_len];
     glGetShaderInfoLog(result, info_len, &info_len, info_buffer);
 
-    fprintf(stderr, "Compilation error: %s\n", info_buffer);
+    Log::warn("Compilation error: {}", info_buffer);
 
     delete[] info_buffer;
 
@@ -64,7 +65,7 @@ u32 compile_shader(const String &src, u32 kind) {
 
 b32 WinFramebuffer::init() {
   {
-    printf("Initializing framebuffer...\n");
+    Log::info("Initializing framebuffer...");
 
     { // Load shader
       String vert_src = R"(
@@ -95,7 +96,7 @@ b32 WinFramebuffer::init() {
 
       _sh = glCreateProgram();
       if (!_sh) {
-        fprintf(stderr, "Failed to create the shader program\n");
+        Log::warn("Failed to create the shader program.");
         return false;
       }
 
@@ -112,7 +113,7 @@ b32 WinFramebuffer::init() {
         auto info_buffer = new GLchar[info_len];
         glGetProgramInfoLog(_sh, info_len, &info_len, info_buffer);
 
-        fprintf(stderr, "Link error: %s\n", info_buffer);
+        Log::warn("Link error: {}", info_buffer);
 
         delete[] info_buffer;
 
@@ -205,7 +206,7 @@ b32 WinFramebuffer::render() {
     format = GL_RGBA;
   } break;
   default: {
-    fprintf(stderr, "Invalid bpp = %d\n", bpp());
+    Log::warn("Invalid bpp: {}", bpp());
     return false;
   }
   }

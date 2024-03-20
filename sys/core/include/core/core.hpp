@@ -2,8 +2,8 @@
 // Created by chk on 3/17/2024.
 //
 
-#ifndef CHK_PIX_CORE_HPP
-#define CHK_PIX_CORE_HPP
+#ifndef CHK_PIX_CORE_CORE_HPP
+#define CHK_PIX_CORE_CORE_HPP
 
 #include <cstdint>
 
@@ -29,4 +29,4 @@ using StringW = std::wstring;
 using StringView = std::string_view;
 using StringWView = std::wstring_view;
 
-#endif // CHK_PIX_CORE_HPP
+#endif // CHK_PIX_CORE_CORE_HPP

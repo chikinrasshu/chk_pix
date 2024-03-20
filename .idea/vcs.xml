@@ -5,6 +5,7 @@
     <mapping directory="$PROJECT_DIR$/ext/glad" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/ext/glfw" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/ext/glm" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/ext/spdlog" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/ext/stb" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/ext/stb/stb" vcs="Git" />
   </component>

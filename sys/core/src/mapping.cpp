@@ -5,7 +5,7 @@
 #include <core/mapping.hpp>
 
 r32 map_raw(r32 v, r32 src_a, r32 src_b, r32 dst_a, r32 dst_b) {
-  r32 slope = 1.0 * (dst_b - dst_a) / (src_b - src_a);
+  r32 slope = 1.0f * (dst_b - dst_a) / (src_b - src_a);
   return dst_a + slope * (v - src_a);
 }
 
